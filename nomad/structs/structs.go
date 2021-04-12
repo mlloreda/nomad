@@ -7243,14 +7243,11 @@ const (
 
 	// ConnectTerminatingPrefix is the prefix used for fields referencing a Consul
 	// Connect Terminating Gateway Proxy.
-	//
 	ConnectTerminatingPrefix = "connect-terminating"
 
 	// ConnectMeshPrefix is the prefix used for fields referencing a Consul Connect
 	// Mesh Gateway Proxy.
-	//
-	// Not yet supported.
-	// ConnectMeshPrefix = "connect-mesh"
+	ConnectMeshPrefix = "connect-mesh"
 )
 
 // ValidateConnectProxyService checks that the service that is being

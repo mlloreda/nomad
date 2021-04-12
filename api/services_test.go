@@ -508,3 +508,35 @@ func TestService_ConsulTerminatingConfigEntry_Copy(t *testing.T) {
 		require.Equal(t, entry, result)
 	})
 }
+
+func TestService_ConsulMeshConfigEntry_Canonicalize(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil", func(t *testing.T) {
+		ce := (*ConsulMeshConfigEntry)(nil)
+		ce.Canonicalize()
+		require.Nil(t, ce)
+	})
+
+	t.Run("instantiated", func(t *testing.T) {
+		ce := new(ConsulMeshConfigEntry)
+		ce.Canonicalize()
+		require.NotNil(t, ce)
+	})
+}
+
+func TestService_ConsulMeshConfigEntry_Copy(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil", func(t *testing.T) {
+		ce := (*ConsulMeshConfigEntry)(nil)
+		ce2 := ce.Copy()
+		require.Nil(t, ce2)
+	})
+
+	t.Run("instantiated", func(t *testing.T) {
+		ce := new(ConsulMeshConfigEntry)
+		ce2 := ce.Copy()
+		require.NotNil(t, ce2)
+	})
+}

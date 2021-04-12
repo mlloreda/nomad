@@ -1341,12 +1341,14 @@ type ConsulGateway struct {
 	// Terminating represents the Consul Configuration Entry for a Terminating Gateway.
 	Terminating *ConsulTerminatingConfigEntry
 
-	// Mesh is not yet supported.
-	// Mesh *ConsulMeshConfigEntry
+	// Mesh indicates the Consul service should be a Mesh Gateway.
+	Mesh *ConsulMeshConfigEntry
 }
 
 func (g *ConsulGateway) Prefix() string {
 	switch {
+	case g.Mesh != nil:
+		return ConnectMeshPrefix
 	case g.Ingress != nil:
 		return ConnectIngressPrefix
 	default:
@@ -1986,5 +1988,31 @@ func (e *ConsulTerminatingConfigEntry) Validate() error {
 		}
 	}
 
+	return nil
+}
+
+// ConsulMeshConfigEntry is a stub used to represent that the gateway service type
+// should be for a Mesh Gateway. Unlike Ingress and Terminating, there is no
+// actual Consul Config Entry type for mesh-gateway, at least for now. We still
+// create a type for future proofing, instead just using a bool for example.
+type ConsulMeshConfigEntry struct {
+	// nothing in here
+}
+
+func (e *ConsulMeshConfigEntry) Copy() *ConsulMeshConfigEntry {
+	if e == nil {
+		return nil
+	}
+	return new(ConsulMeshConfigEntry)
+}
+
+func (e *ConsulMeshConfigEntry) Equals(o *ConsulMeshConfigEntry) bool {
+	if e == nil || o == nil {
+		return e == o
+	}
+	return true
+}
+
+func (e *ConsulMeshConfigEntry) Validate() error {
 	return nil
 }
