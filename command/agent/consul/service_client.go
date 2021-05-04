@@ -966,6 +966,8 @@ func (c *ServiceClient) serviceRegs(ops *operations, service *structs.Service, w
 				defaultBind.Port = dynPort.Value
 			}
 		}
+	case service.Connect.IsMesh():
+		kind = api.ServiceKindMeshGateway
 	}
 
 	// Build the Consul Service registration request

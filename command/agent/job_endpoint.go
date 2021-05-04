@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/golang/snappy"
-	"github.com/hashicorp/nomad/api"
+	api "github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/jobspec"
 	"github.com/hashicorp/nomad/jobspec2"
@@ -1362,6 +1362,7 @@ func apiConnectGatewayToStructs(in *api.ConsulGateway) *structs.ConsulGateway {
 		Proxy:       apiConnectGatewayProxyToStructs(in.Proxy),
 		Ingress:     apiConnectIngressGatewayToStructs(in.Ingress),
 		Terminating: apiConnectTerminatingGatewayToStructs(in.Terminating),
+		Mesh:        apiConnectMeshGatewayToStructs(in.Mesh),
 	}
 }
 
@@ -1492,6 +1493,13 @@ func apiConnectTerminatingServiceToStructs(in *api.ConsulLinkedService) *structs
 		KeyFile:  in.KeyFile,
 		SNI:      in.SNI,
 	}
+}
+
+func apiConnectMeshGatewayToStructs(in *api.ConsulMeshConfigEntry) *structs.ConsulMeshConfigEntry {
+	if in == nil {
+		return nil
+	}
+	return new(structs.ConsulMeshConfigEntry)
 }
 
 func apiConnectSidecarServiceToStructs(in *api.ConsulSidecarService) *structs.ConsulSidecarService {

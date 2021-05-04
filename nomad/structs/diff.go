@@ -849,6 +849,32 @@ func connectGatewayDiff(prev, next *ConsulGateway, contextual bool) *ObjectDiff 
 		diff.Objects = append(diff.Objects, gatewayTerminatingDiff)
 	}
 
+	// Diff the mesh gateway fields.
+	gatewayMeshDiff := connectGatewayMeshDiff(prev.Mesh, next.Mesh, contextual)
+	if gatewayMeshDiff != nil {
+		diff.Objects = append(diff.Objects, gatewayMeshDiff)
+	}
+
+	return diff
+}
+
+func connectGatewayMeshDiff(prev, next *ConsulMeshConfigEntry, contextual bool) *ObjectDiff {
+	diff := &ObjectDiff{Type: DiffTypeNone, Name: "Mesh"}
+
+	if reflect.DeepEqual(prev, next) {
+		return nil
+	} else if prev == nil {
+		prev = new(ConsulMeshConfigEntry)
+		diff.Type = DiffTypeAdded
+	} else if next == nil {
+		next = new(ConsulMeshConfigEntry)
+		diff.Type = DiffTypeDeleted
+	} else {
+		diff.Type = DiffTypeEdited
+	}
+
+	// Currently no fields in mesh gateways.
+
 	return diff
 }
 

@@ -164,8 +164,12 @@ func (envoyBootstrapHook) Name() string {
 }
 
 func isConnectKind(kind string) bool {
-	kinds := []string{structs.ConnectProxyPrefix, structs.ConnectIngressPrefix, structs.ConnectTerminatingPrefix}
-	return helper.SliceStringContains(kinds, kind)
+	return helper.SliceStringContains([]string{
+		structs.ConnectProxyPrefix,
+		structs.ConnectIngressPrefix,
+		structs.ConnectTerminatingPrefix,
+		structs.ConnectMeshPrefix,
+	}, kind)
 }
 
 func (_ *envoyBootstrapHook) extractNameAndKind(kind structs.TaskKind) (string, string, error) {
@@ -404,6 +408,11 @@ func (h *envoyBootstrapHook) proxyServiceID(group string, service *structs.Servi
 	return agentconsul.MakeAllocServiceID(h.alloc.ID, "group-"+group, service)
 }
 
+// newEnvoyBootstrapArgs is used to prepare for the invocation of the
+// 'consul connect envoy' command with arguments which will bootstrap the connect
+// proxy or gateway.
+//
+// https://www.consul.io/commands/connect/envoy#consul-connect-envoy
 func (h *envoyBootstrapHook) newEnvoyBootstrapArgs(
 	group string, service *structs.Service,
 	grpcAddr, envoyAdminBind, siToken, filepath string,
@@ -416,19 +425,25 @@ func (h *envoyBootstrapHook) newEnvoyBootstrapArgs(
 	)
 
 	namespace = h.getConsulNamespace()
+	id := h.proxyServiceID(group, service)
 
 	switch {
 	case service.Connect.HasSidecar():
-		sidecarForID = h.proxyServiceID(group, service)
+		sidecarForID = id
 	case service.Connect.IsIngress():
-		proxyID = h.proxyServiceID(group, service)
+		proxyID = id
 		gateway = "ingress"
 	case service.Connect.IsTerminating():
-		proxyID = h.proxyServiceID(group, service)
+		proxyID = id
 		gateway = "terminating"
+	case service.Connect.IsMesh():
+		proxyID = id
+		gateway = "mesh"
 	}
 
-	h.logger.Debug("bootstrapping envoy",
+	fmt.Println("HAHHHHHHHHHHHH")
+
+	h.logger.Info("bootstrapping envoy",
 		"sidecar_for", service.Name, "bootstrap_file", filepath,
 		"sidecar_for_id", sidecarForID, "grpc_addr", grpcAddr,
 		"admin_bind", envoyAdminBind, "gateway", gateway,

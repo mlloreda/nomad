@@ -7209,19 +7209,30 @@ func (k TaskKind) IsConnectNative() bool {
 	return k.hasPrefix(ConnectNativePrefix)
 }
 
+// IsConnectIngress returns true if the TaskKind is connect-ingress.
 func (k TaskKind) IsConnectIngress() bool {
 	return k.hasPrefix(ConnectIngressPrefix)
 }
 
+// IsConnectTerminating returns true if the TaskKind is connect-terminating.
 func (k TaskKind) IsConnectTerminating() bool {
 	return k.hasPrefix(ConnectTerminatingPrefix)
 }
 
+// IsConnectMesh returns true if the TaskKind is connect-mesh.
+func (k TaskKind) IsConnectMesh() bool {
+	return k.hasPrefix(ConnectMeshPrefix)
+}
+
+// IsAnyConnectGateway returns true if the TaskKind represents any one of the
+// supported connect gateway types.
 func (k TaskKind) IsAnyConnectGateway() bool {
 	switch {
 	case k.IsConnectIngress():
 		return true
 	case k.IsConnectTerminating():
+		return true
+	case k.IsConnectMesh():
 		return true
 	default:
 		return false

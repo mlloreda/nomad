@@ -829,7 +829,9 @@ func (c *ConsulConnect) IsTerminating() bool {
 	return c.IsGateway() && c.Gateway.Terminating != nil
 }
 
-// also mesh
+func (c *ConsulConnect) IsMesh() bool {
+	return c.IsGateway() && c.Gateway.Mesh != nil
+}
 
 // Validate that the Connect block represents exactly one of:
 // - Connect non-native service sidecar proxy
@@ -1278,7 +1280,7 @@ func (u *ConsulUpstream) Equals(o *ConsulUpstream) bool {
 	return (*u) == (*o)
 }
 
-// ExposeConfig represents a Consul Connect expose jobspec stanza.
+// ConsulExposeConfig represents a Consul Connect expose jobspec stanza.
 type ConsulExposeConfig struct {
 	// Use json tag to match with field name in api/
 	Paths []ConsulExposePath `json:"Path"`
@@ -1354,7 +1356,6 @@ func (g *ConsulGateway) Prefix() string {
 	default:
 		return ConnectTerminatingPrefix
 	}
-	// also mesh
 }
 
 func (g *ConsulGateway) Copy() *ConsulGateway {
@@ -1366,6 +1367,7 @@ func (g *ConsulGateway) Copy() *ConsulGateway {
 		Proxy:       g.Proxy.Copy(),
 		Ingress:     g.Ingress.Copy(),
 		Terminating: g.Terminating.Copy(),
+		Mesh:        g.Mesh.Copy(),
 	}
 }
 
@@ -1383,6 +1385,10 @@ func (g *ConsulGateway) Equals(o *ConsulGateway) bool {
 	}
 
 	if !g.Terminating.Equals(o.Terminating) {
+		return false
+	}
+
+	if !g.Mesh.Equals(o.Mesh) {
 		return false
 	}
 
@@ -1406,7 +1412,11 @@ func (g *ConsulGateway) Validate() error {
 		return err
 	}
 
-	// Exactly 1 of ingress/terminating/mesh(soon) must be set.
+	if err := g.Mesh.Validate(); err != nil {
+		return err
+	}
+
+	// Exactly 1 of ingress/terminating/mesh must be set.
 	count := 0
 	if g.Ingress != nil {
 		count++
@@ -1414,8 +1424,11 @@ func (g *ConsulGateway) Validate() error {
 	if g.Terminating != nil {
 		count++
 	}
+	if g.Mesh != nil {
+		count++
+	}
 	if count != 1 {
-		return fmt.Errorf("One Consul Gateway Configuration Entry must be set")
+		return fmt.Errorf("One Consul Gateway Configuration must be set")
 	}
 	return nil
 }
@@ -1614,11 +1627,7 @@ func (c *ConsulGatewayTLSConfig) Equals(o *ConsulGatewayTLSConfig) bool {
 
 // ConsulIngressService is used to configure a service fronted by the ingress gateway.
 type ConsulIngressService struct {
-	// Namespace is not yet supported.
-	// Namespace string
-
-	Name string
-
+	Name  string
 	Hosts []string
 }
 
@@ -1778,9 +1787,6 @@ COMPARE: // order does not matter
 //
 // https://www.consul.io/docs/agent/config-entries/ingress-gateway#available-fields
 type ConsulIngressConfigEntry struct {
-	// Namespace is not yet supported.
-	// Namespace string
-
 	TLS       *ConsulGatewayTLSConfig
 	Listeners []*ConsulIngressListener
 }
@@ -1941,9 +1947,6 @@ COMPARE: // order does not matter
 }
 
 type ConsulTerminatingConfigEntry struct {
-	// Namespace is not yet supported.
-	// Namespace string
-
 	Services []*ConsulLinkedService
 }
 
@@ -1991,10 +1994,11 @@ func (e *ConsulTerminatingConfigEntry) Validate() error {
 	return nil
 }
 
-// ConsulMeshConfigEntry is a stub used to represent that the gateway service type
-// should be for a Mesh Gateway. Unlike Ingress and Terminating, there is no
-// actual Consul Config Entry type for mesh-gateway, at least for now. We still
-// create a type for future proofing, instead just using a bool for example.
+// ConsulMeshConfigEntry is a stub used to represent that the gateway service
+// type should be for a Mesh Gateway. Unlike Ingress and Terminating, there is no
+// dedicated Consul Config Entry type for "mesh-gateway", for now. We still
+// create a type for future proofing, and to keep underlying job-spec marshaling
+// consistent with the other types.
 type ConsulMeshConfigEntry struct {
 	// nothing in here
 }

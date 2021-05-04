@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/snappy"
-	"github.com/hashicorp/nomad/api"
+	api "github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/nomad/mock"
 	"github.com/hashicorp/nomad/nomad/structs"
@@ -3308,6 +3308,22 @@ func TestConversion_ApiConsulConnectToStructs(t *testing.T) {
 						KeyFile:  "key.pem",
 						SNI:      "linked.consul",
 					}},
+				},
+			},
+		}))
+	})
+
+	t.Run("gateway mesh", func(t *testing.T) {
+		require.Equal(t, &structs.ConsulConnect{
+			Gateway: &structs.ConsulGateway{
+				Mesh: &structs.ConsulMeshConfigEntry{
+					// nothing
+				},
+			},
+		}, ApiConsulConnectToStructs(&api.ConsulConnect{
+			Gateway: &api.ConsulGateway{
+				Mesh: &api.ConsulMeshConfigEntry{
+					// nothing
 				},
 			},
 		}))

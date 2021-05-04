@@ -140,19 +140,20 @@ func getSidecarTaskForService(tg *structs.TaskGroup, svc string) *structs.Task {
 	return nil
 }
 
-func isSidecarForService(t *structs.Task, svc string) bool {
-	return t.Kind == structs.NewTaskKind(structs.ConnectProxyPrefix, svc)
+func isSidecarForService(t *structs.Task, service string) bool {
+	return t.Kind == structs.NewTaskKind(structs.ConnectProxyPrefix, service)
 }
 
-func hasGatewayTaskForService(tg *structs.TaskGroup, svc string) bool {
+func hasGatewayTaskForService(tg *structs.TaskGroup, service string) bool {
 	for _, t := range tg.Tasks {
 		switch {
-		case isIngressGatewayForService(t, svc):
+		case isIngressGatewayForService(t, service):
 			return true
-		case isTerminatingGatewayForService(t, svc):
+		case isTerminatingGatewayForService(t, service):
+			return true
+		case isMeshGatewayForService(t, service):
 			return true
 		}
-		// mesh later
 	}
 	return false
 }
@@ -163,6 +164,10 @@ func isIngressGatewayForService(t *structs.Task, svc string) bool {
 
 func isTerminatingGatewayForService(t *structs.Task, svc string) bool {
 	return t.Kind == structs.NewTaskKind(structs.ConnectTerminatingPrefix, svc)
+}
+
+func isMeshGatewayForService(t *structs.Task, svc string) bool {
+	return t.Kind == structs.NewTaskKind(structs.ConnectMeshPrefix, svc)
 }
 
 // getNamedTaskForNativeService retrieves the Task with the name specified in the
@@ -202,8 +207,6 @@ func injectPort(group *structs.TaskGroup, label string) {
 	})
 }
 
-// probably need to hack this up to look for checks on the service, and if they
-// qualify, configure a port for envoy to use to expose their paths.
 func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 	// Create an environment interpolator with what we have at submission time.
 	// This should only be used to interpolate connect service names which are
@@ -287,6 +290,14 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 			if service.Connect.IsTerminating() && service.PortLabel == "" {
 				// Inject a dynamic port for the terminating gateway.
 				portLabel := fmt.Sprintf("%s-%s", structs.ConnectTerminatingPrefix, service.Name)
+				service.PortLabel = portLabel
+				injectPort(g, portLabel)
+			}
+
+			// Likewise, mesh gateway needs a port, if not already set.
+			if service.Connect.IsMesh() && service.PortLabel == "" {
+				// Inject a dynamic port for the mesh gateway.
+				portLabel := fmt.Sprintf("%s-%s", structs.ConnectMeshPrefix, service.Name)
 				service.PortLabel = portLabel
 				injectPort(g, portLabel)
 			}
@@ -376,7 +387,6 @@ func gatewayProxyForBridge(gateway *structs.ConsulGateway) *structs.ConsulGatewa
 				Port:    -1, // filled in later with dynamic port
 			}}
 	}
-	// later: mesh
 
 	return proxy
 }

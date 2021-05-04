@@ -450,6 +450,17 @@ func TestJobEndpointConnect_hasGatewayTaskForService(t *testing.T) {
 		}, "my-service")
 		require.True(t, result)
 	})
+
+	t.Run("has mesh task", func(t *testing.T) {
+		result := hasGatewayTaskForService(&structs.TaskGroup{
+			Name: "group",
+			Tasks: []*structs.Task{{
+				Name: "mesh-gateway-my-service",
+				Kind: structs.NewTaskKind(structs.ConnectMeshPrefix, "my-service"),
+			}},
+		}, "my-service")
+		require.True(t, result)
+	})
 }
 
 func TestJobEndpointConnect_gatewayProxyIsDefault(t *testing.T) {
@@ -672,6 +683,10 @@ func TestJobEndpointConnect_gatewayProxyForBridge(t *testing.T) {
 	})
 
 	t.Run("terminating leave as-is", func(t *testing.T) {
-		//
+		// ?? (todo)
+	})
+
+	t.Run("mesh leave as-is", func(t *testing.T) {
+		// ?? (todo)
 	})
 }
