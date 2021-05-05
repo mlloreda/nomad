@@ -214,6 +214,68 @@ func TestService_Connect_ConsulProxy_Canonicalize(t *testing.T) {
 		require.Nil(t, cp.Upstreams)
 		require.Nil(t, cp.Config)
 	})
+
+	t.Run("fix upstream mesh_gateway", func(t *testing.T) {
+		cp := &ConsulProxy{
+			Upstreams: []*ConsulUpstream{{
+				MeshGateway: &ConsulMeshGateway{
+					Mode: "",
+				}},
+			},
+		}
+		cp.Canonicalize()
+		require.Equal(t, "none", cp.Upstreams[0].MeshGateway.Mode)
+	})
+}
+
+func TestService_Connect_ConsulUpstream_Copy(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil upstream", func(t *testing.T) {
+		cu := (*ConsulUpstream)(nil)
+		result := cu.Copy()
+		require.Nil(t, result)
+	})
+
+	t.Run("complete upstream", func(t *testing.T) {
+		cu := &ConsulUpstream{
+			DestinationName:  "dest1",
+			Datacenter:       "dc2",
+			LocalBindPort:    2000,
+			LocalBindAddress: "10.0.0.1",
+			MeshGateway:      &ConsulMeshGateway{Mode: "remote"},
+		}
+		result := cu.Copy()
+		require.Equal(t, cu, result)
+	})
+}
+
+func TestService_Connect_ConsulUpstream_Canonicalize(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil upstream", func(t *testing.T) {
+		cu := (*ConsulUpstream)(nil)
+		cu.Canonicalize()
+		require.Nil(t, cu)
+	})
+
+	t.Run("fix mesh_gateway", func(t *testing.T) {
+		cu := &ConsulUpstream{
+			DestinationName:  "dest1",
+			Datacenter:       "dc2",
+			LocalBindPort:    2000,
+			LocalBindAddress: "10.0.0.1",
+			MeshGateway:      &ConsulMeshGateway{Mode: ""},
+		}
+		cu.Canonicalize()
+		require.Equal(t, &ConsulUpstream{
+			DestinationName:  "dest1",
+			Datacenter:       "dc2",
+			LocalBindPort:    2000,
+			LocalBindAddress: "10.0.0.1",
+			MeshGateway:      &ConsulMeshGateway{Mode: "none"},
+		}, cu)
+	})
 }
 
 func TestService_Connect_proxy_settings(t *testing.T) {

@@ -1223,6 +1223,56 @@ func (p *ConsulProxy) Equals(o *ConsulProxy) bool {
 	return true
 }
 
+// ConsulMeshGateway is used to configure mesh gateway usage when connecting to
+// a connect upstream in another datacenter.
+type ConsulMeshGateway struct {
+	// Mode configures how an upstream should be accessed with regard to using
+	// mesh gateways.
+	//
+	// local - the connect proxy makes outbound connections through mesh gateway
+	// originating in the same datacenter.
+	//
+	// remote - the connect proxy makes outbound connections to a mesh gateway
+	// in the destination datacenter.
+	//
+	// none (default) - no mesh gateway is used, the proxy makes outbound connections
+	// directly to destination services.
+	//
+	// https://www.consul.io/docs/connect/gateways/mesh-gateway#modes-of-operation
+	Mode string
+}
+
+func (c *ConsulMeshGateway) Copy() *ConsulMeshGateway {
+	if c == nil {
+		return nil
+	}
+
+	return &ConsulMeshGateway{
+		Mode: c.Mode,
+	}
+}
+
+func (c *ConsulMeshGateway) Equals(o *ConsulMeshGateway) bool {
+	if c == nil || o == nil {
+		return c == o
+	}
+
+	return c.Mode == o.Mode
+}
+
+func (c *ConsulMeshGateway) Validate() error {
+	if c == nil {
+		return nil
+	}
+
+	switch c.Mode {
+	case "local", "remote", "none":
+		return nil
+	default:
+		return fmt.Errorf("Connect mesh_gateway mode %q not supported", c.Mode)
+	}
+}
+
 // ConsulUpstream represents a Consul Connect upstream jobspec stanza.
 type ConsulUpstream struct {
 	// DestinationName is the name of the upstream service.
@@ -1238,6 +1288,10 @@ type ConsulUpstream struct {
 	// LocalBindAddress is the address the proxy will receive connections for the
 	// upstream on.
 	LocalBindAddress string
+
+	// MeshGateway is the optional configuration of the mesh gateway for this
+	// upstream to use.
+	MeshGateway *ConsulMeshGateway
 }
 
 func upstreamsEquals(a, b []ConsulUpstream) bool {
@@ -1268,6 +1322,7 @@ func (u *ConsulUpstream) Copy() *ConsulUpstream {
 		LocalBindPort:    u.LocalBindPort,
 		Datacenter:       u.Datacenter,
 		LocalBindAddress: u.LocalBindAddress,
+		MeshGateway:      u.MeshGateway.Copy(),
 	}
 }
 
@@ -1277,7 +1332,20 @@ func (u *ConsulUpstream) Equals(o *ConsulUpstream) bool {
 		return u == o
 	}
 
-	return (*u) == (*o)
+	switch {
+	case u.DestinationName != o.DestinationName:
+		return false
+	case u.LocalBindPort != o.LocalBindPort:
+		return false
+	case u.Datacenter != o.Datacenter:
+		return false
+	case u.LocalBindAddress != o.LocalBindAddress:
+		return false
+	case !u.MeshGateway.Equals(o.MeshGateway):
+		return false
+	}
+
+	return true
 }
 
 // ConsulExposeConfig represents a Consul Connect expose jobspec stanza.

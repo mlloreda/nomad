@@ -522,6 +522,12 @@ func TestConsulUpstream_upstreamEquals(t *testing.T) {
 		require.False(t, upstreamsEquals(a, b))
 	})
 
+	t.Run("different mesh_gateway", func(t *testing.T) {
+		a := []ConsulUpstream{{DestinationName: "foo", MeshGateway: &ConsulMeshGateway{Mode: "local"}}}
+		b := []ConsulUpstream{{DestinationName: "foo", MeshGateway: &ConsulMeshGateway{Mode: "remote"}}}
+		require.False(t, upstreamsEquals(a, b))
+	})
+
 	t.Run("identical", func(t *testing.T) {
 		a := []ConsulUpstream{up("foo", 8000), up("bar", 9000)}
 		b := []ConsulUpstream{up("foo", 8000), up("bar", 9000)}
@@ -1422,6 +1428,47 @@ func TestConsulTerminatingConfigEntry_Validate(t *testing.T) {
 				Name: "service1",
 			}},
 		}).Validate()
+		require.NoError(t, err)
+	})
+}
+
+func TestConsulMeshGateway_Copy(t *testing.T) {
+	t.Parallel()
+
+	require.Nil(t, (*ConsulMeshGateway)(nil))
+	require.Equal(t, &ConsulMeshGateway{
+		Mode: "remote",
+	}, &ConsulMeshGateway{
+		Mode: "remote",
+	})
+}
+
+func TestConsulMeshGateway_Equals(t *testing.T) {
+	t.Parallel()
+
+	c := &ConsulMeshGateway{Mode: "local"}
+	require.False(t, c.Equals(nil))
+	require.True(t, c.Equals(c))
+
+	o := &ConsulMeshGateway{Mode: "remote"}
+	require.False(t, c.Equals(o))
+}
+
+func TestConsulMeshGateway_Validate(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil", func(t *testing.T) {
+		err := (*ConsulMeshGateway)(nil).Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("mode invalid", func(t *testing.T) {
+		err := (&ConsulMeshGateway{Mode: "banana"}).Validate()
+		require.EqualError(t, err, `Connect mesh_gateway mode "banana" not supported`)
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		err := (&ConsulMeshGateway{Mode: "local"}).Validate()
 		require.NoError(t, err)
 	})
 }

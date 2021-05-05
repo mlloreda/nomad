@@ -1538,9 +1538,19 @@ func apiUpstreamsToStructs(in []*api.ConsulUpstream) []structs.ConsulUpstream {
 			LocalBindPort:    upstream.LocalBindPort,
 			Datacenter:       upstream.Datacenter,
 			LocalBindAddress: upstream.LocalBindAddress,
+			MeshGateway:      apiMeshGatewayToStructs(upstream.MeshGateway),
 		}
 	}
 	return upstreams
+}
+
+func apiMeshGatewayToStructs(in *api.ConsulMeshGateway) *structs.ConsulMeshGateway {
+	if in == nil {
+		return nil
+	}
+	return &structs.ConsulMeshGateway{
+		Mode: in.Mode,
+	}
 }
 
 func apiConsulExposeConfigToStructs(in *api.ConsulExposeConfig) *structs.ConsulExposeConfig {

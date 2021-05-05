@@ -281,6 +281,10 @@ func (cp *ConsulProxy) Canonicalize() {
 		cp.Upstreams = nil
 	}
 
+	for i := 0; i < len(cp.Upstreams); i++ {
+		cp.Upstreams[i].Canonicalize()
+	}
+
 	if len(cp.Config) == 0 {
 		cp.Config = nil
 	}
@@ -332,6 +336,26 @@ type ConsulUpstream struct {
 	Datacenter       string             `mapstructure:"datacenter" hcl:"datacenter,optional"`
 	LocalBindAddress string             `mapstructure:"local_bind_address" hcl:"local_bind_address,optional"`
 	MeshGateway      *ConsulMeshGateway `mapstructure:"mesh_gateway" hcl:"mesh_gateway,block"`
+}
+
+func (cu *ConsulUpstream) Copy() *ConsulUpstream {
+	if cu == nil {
+		return nil
+	}
+	return &ConsulUpstream{
+		DestinationName:  cu.DestinationName,
+		LocalBindPort:    cu.LocalBindPort,
+		Datacenter:       cu.Datacenter,
+		LocalBindAddress: cu.LocalBindAddress,
+		MeshGateway:      cu.MeshGateway.Copy(),
+	}
+}
+
+func (cu *ConsulUpstream) Canonicalize() {
+	if cu == nil {
+		return
+	}
+	cu.MeshGateway.Canonicalize()
 }
 
 type ConsulExposeConfig struct {
