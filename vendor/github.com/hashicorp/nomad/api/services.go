@@ -286,12 +286,52 @@ func (cp *ConsulProxy) Canonicalize() {
 	}
 }
 
+// ConsulMeshGateway is used to configure mesh gateway usage when connecting to
+// a connect upstream in another datacenter.
+type ConsulMeshGateway struct {
+	// Mode configures how an upstream should be accessed with regard to using
+	// mesh gateways.
+	//
+	// local - the connect proxy makes outbound connections through mesh gateway
+	// originating in the same datacenter.
+	//
+	// remote - the connect proxy makes outbound connections to a mesh gateway
+	// in the destination datacenter.
+	//
+	// none (default) - no mesh gateway is used, the proxy makes outbound connections
+	// directly to destination services.
+	//
+	// https://www.consul.io/docs/connect/gateways/mesh-gateway#modes-of-operation
+	Mode string `mapstructure:"mode" hcl:"mode,required"`
+}
+
+func (c *ConsulMeshGateway) Canonicalize() {
+	if c == nil {
+		return
+	}
+
+	if c.Mode == "" {
+		c.Mode = "none"
+	}
+}
+
+func (c *ConsulMeshGateway) Copy() *ConsulMeshGateway {
+	if c == nil {
+		return nil
+	}
+
+	return &ConsulMeshGateway{
+		Mode: c.Mode,
+	}
+}
+
 // ConsulUpstream represents a Consul Connect upstream jobspec stanza.
 type ConsulUpstream struct {
-	DestinationName  string `mapstructure:"destination_name" hcl:"destination_name,optional"`
-	LocalBindPort    int    `mapstructure:"local_bind_port" hcl:"local_bind_port,optional"`
-	Datacenter       string `mapstructure:"datacenter" hcl:"datacenter,optional"`
-	LocalBindAddress string `mapstructure:"local_bind_address" hcl:"local_bind_address,optional"`
+	DestinationName  string             `mapstructure:"destination_name" hcl:"destination_name,optional"`
+	LocalBindPort    int                `mapstructure:"local_bind_port" hcl:"local_bind_port,optional"`
+	Datacenter       string             `mapstructure:"datacenter" hcl:"datacenter,optional"`
+	LocalBindAddress string             `mapstructure:"local_bind_address" hcl:"local_bind_address,optional"`
+	MeshGateway      *ConsulMeshGateway `mapstructure:"mesh_gateway" hcl:"mesh_gateway,block"`
 }
 
 type ConsulExposeConfig struct {

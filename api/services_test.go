@@ -540,3 +540,41 @@ func TestService_ConsulMeshConfigEntry_Copy(t *testing.T) {
 		require.NotNil(t, ce2)
 	})
 }
+
+func TestService_ConsulMeshGateway_Canonicalize(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil", func(t *testing.T) {
+		c := (*ConsulMeshGateway)(nil)
+		c.Canonicalize()
+		require.Nil(t, c)
+	})
+
+	t.Run("unset mode", func(t *testing.T) {
+		c := &ConsulMeshGateway{
+			Mode: "",
+		}
+		c.Canonicalize()
+		require.Equal(t, &ConsulMeshGateway{
+			Mode: "none",
+		}, c)
+	})
+}
+
+func TestService_ConsulMeshGateway_Copy(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil", func(t *testing.T) {
+		c := (*ConsulMeshGateway)(nil)
+		result := c.Copy()
+		require.Nil(t, result)
+	})
+
+	t.Run("instantiated", func(t *testing.T) {
+		c := &ConsulMeshGateway{
+			Mode: "local",
+		}
+		result := c.Copy()
+		require.Equal(t, c, result)
+	})
+}
