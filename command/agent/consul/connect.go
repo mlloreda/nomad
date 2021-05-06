@@ -198,7 +198,7 @@ func connectUpstreams(in []structs.ConsulUpstream) []api.Upstream {
 			LocalBindPort:    upstream.LocalBindPort,
 			Datacenter:       upstream.Datacenter,
 			LocalBindAddress: upstream.LocalBindAddress,
-			// MeshGateway:      connectMeshGateway(upstream.MeshGateway),
+			MeshGateway:      connectMeshGateway(upstream.MeshGateway),
 		}
 	}
 	return upstreams

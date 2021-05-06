@@ -294,12 +294,20 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 				injectPort(g, portLabel)
 			}
 
-			// Likewise, mesh gateway needs a port, if not already set.
-			if service.Connect.IsMesh() && service.PortLabel == "" {
-				// Inject a dynamic port for the mesh gateway.
-				portLabel := fmt.Sprintf("%s-%s", structs.ConnectMeshPrefix, service.Name)
-				service.PortLabel = portLabel
-				injectPort(g, portLabel)
+			// A mesh Gateway will need 2 ports (lan and wan).
+			if service.Connect.IsMesh() {
+
+				// Generate wan port, or use the service port label if set.
+				if service.PortLabel == "" {
+					// Inject a dynamic port for the mesh gateway WAN address.
+					wanPortLabel := fmt.Sprintf("%s-%s-wan", structs.ConnectMeshPrefix, service.Name)
+					service.PortLabel = wanPortLabel
+					injectPort(g, wanPortLabel)
+				}
+
+				// Inject a dynamic port for mesh gateway LAN address.
+				lanPortLabel := fmt.Sprintf("%s-%s-lan", structs.ConnectMeshPrefix, service.Name)
+				injectPort(g, lanPortLabel)
 			}
 
 			// inject the gateway task only if it does not yet already exist
