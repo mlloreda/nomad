@@ -198,9 +198,31 @@ func connectUpstreams(in []structs.ConsulUpstream) []api.Upstream {
 			LocalBindPort:    upstream.LocalBindPort,
 			Datacenter:       upstream.Datacenter,
 			LocalBindAddress: upstream.LocalBindAddress,
+			// MeshGateway:      connectMeshGateway(upstream.MeshGateway),
 		}
 	}
 	return upstreams
+}
+
+func connectMeshGateway(in *structs.ConsulMeshGateway) api.MeshGatewayConfig {
+	gw := api.MeshGatewayConfig{
+		Mode: api.MeshGatewayModeDefault,
+	}
+
+	if in == nil {
+		return gw
+	}
+
+	switch in.Mode {
+	case "local":
+		gw.Mode = api.MeshGatewayModeLocal
+	case "remote":
+		gw.Mode = api.MeshGatewayModeRemote
+	case "none":
+		gw.Mode = api.MeshGatewayModeNone
+	}
+
+	return gw
 }
 
 func connectProxyConfig(cfg map[string]interface{}, port int) map[string]interface{} {

@@ -306,7 +306,7 @@ type ConsulMeshGateway struct {
 	// directly to destination services.
 	//
 	// https://www.consul.io/docs/connect/gateways/mesh-gateway#modes-of-operation
-	Mode string `mapstructure:"mode" hcl:"mode,required"`
+	Mode string `mapstructure:"mode" hcl:"mode,optional"`
 }
 
 func (c *ConsulMeshGateway) Canonicalize() {

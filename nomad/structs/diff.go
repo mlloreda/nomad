@@ -1355,6 +1355,7 @@ func consulProxyDiff(old, new *ConsulProxy, contextual bool) *ObjectDiff {
 	// Diff the primitive fields.
 	diff.Fields = fieldDiffs(oldPrimitiveFlat, newPrimitiveFlat, contextual)
 
+	// TODO: upstreams contain blobs now, need to do manual diffs.
 	consulUpstreamsDiff := primitiveObjectSetDiff(
 		interfaceSlice(old.Upstreams),
 		interfaceSlice(new.Upstreams),
