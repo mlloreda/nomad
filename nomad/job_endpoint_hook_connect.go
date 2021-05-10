@@ -394,6 +394,19 @@ func gatewayProxyForBridge(gateway *structs.ConsulGateway) *structs.ConsulGatewa
 				Address: "0.0.0.0",
 				Port:    -1, // filled in later with dynamic port
 			}}
+	case gateway.Mesh != nil:
+		proxy.EnvoyGatewayNoDefaultBind = true
+		proxy.EnvoyGatewayBindTaggedAddresses = false
+		proxy.EnvoyGatewayBindAddresses = map[string]*structs.ConsulGatewayBindAddress{
+			"wan": {
+				Address: "0.0.0.0",
+				Port:    -1, // filled in later with configured port
+			},
+			"lan": {
+				Address: "0.0.0.0",
+				Port:    -1, // filled in later with generated port
+			},
+		}
 	}
 
 	return proxy
