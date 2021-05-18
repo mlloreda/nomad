@@ -520,6 +520,9 @@ func (e envoyBootstrapArgs) args() []string {
 		arguments = append(arguments, "-namespace", v)
 	}
 
+	// YOU ARE HERE, so do we set -address and/or -wan-address ?
+	fmt.Println("EBA args:", arguments)
+
 	return arguments
 }
 

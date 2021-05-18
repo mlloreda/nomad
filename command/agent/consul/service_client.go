@@ -968,6 +968,37 @@ func (c *ServiceClient) serviceRegs(ops *operations, service *structs.Service, w
 		}
 	case service.Connect.IsMesh():
 		kind = api.ServiceKindMeshGateway
+
+		fmt.Println("\nENTER")
+
+		// wan uses the service port label, which is hopefully tied to a host_network
+		if wanBind, exists := service.Connect.Gateway.Proxy.EnvoyGatewayBindAddresses["wan"]; exists {
+			fmt.Println("wan look for port:", service.PortLabel)
+			if wanPort, ok := workload.Ports.Get(service.PortLabel); ok {
+				wanBind.Port = wanPort.Value
+				fmt.Println("SC set wanBind:", wanBind.Port)
+			} else {
+				fmt.Println("not found")
+			}
+		} else {
+			fmt.Println("wan ba did not exist")
+		}
+
+		// lan uses a nomad dynamic port
+		if lanBind, exists := service.Connect.Gateway.Proxy.EnvoyGatewayBindAddresses["lan"]; exists {
+			portLabel := fmt.Sprintf("%s-%s-lan", structs.ConnectMeshPrefix, service.Name)
+			fmt.Println("lan look for port:", portLabel)
+			if dynPort, ok := workload.Ports.Get(portLabel); ok {
+				lanBind.Port = dynPort.Value
+				fmt.Println("SC set lanBind:", lanBind.Port)
+			} else {
+				fmt.Println("not found")
+			}
+		} else {
+			fmt.Println("lan ba did not exist")
+		}
+
+		fmt.Println("EXIT\n")
 	}
 
 	// Build the Consul Service registration request

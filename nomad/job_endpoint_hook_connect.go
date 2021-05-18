@@ -297,16 +297,14 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 			// A mesh Gateway will need 2 ports (lan and wan).
 			if service.Connect.IsMesh() {
 
-				// Generate wan port, or use the service port label if set.
+				// service port is used for mesh gateway wan address - it should
+				// come from a configured host_network to make sense
 				if service.PortLabel == "" {
-					// Inject a dynamic port for the mesh gateway WAN address.
-					wanPortLabel := fmt.Sprintf("%s-%s-wan", structs.ConnectMeshPrefix, service.Name)
-					service.PortLabel = wanPortLabel
-					injectPort(g, wanPortLabel)
+					return errors.New("service.port must be set for mesh gateway service")
 				}
 
 				// Inject a dynamic port for mesh gateway LAN address.
-				lanPortLabel := fmt.Sprintf("%s-%s-lan", structs.ConnectMeshPrefix, service.Name)
+				lanPortLabel := fmt.Sprintf("%s-%s-lan", structs.ConnectMeshPrefix, service.Name) // todo: extract (we need same logic in service_client.go)
 				injectPort(g, lanPortLabel)
 			}
 
@@ -399,10 +397,12 @@ func gatewayProxyForBridge(gateway *structs.ConsulGateway) *structs.ConsulGatewa
 		proxy.EnvoyGatewayBindTaggedAddresses = false
 		proxy.EnvoyGatewayBindAddresses = map[string]*structs.ConsulGatewayBindAddress{
 			"wan": {
+				// YOU ARE HERE
 				Address: "0.0.0.0",
 				Port:    -1, // filled in later with configured port
 			},
 			"lan": {
+				// AND HERE
 				Address: "0.0.0.0",
 				Port:    -1, // filled in later with generated port
 			},
