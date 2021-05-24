@@ -2742,6 +2742,9 @@ func TestTaskGroupDiff(t *testing.T) {
 										SNI:      "linked1.consul",
 									}},
 								},
+								Mesh: &ConsulMeshConfigEntry{
+									// nothing
+								},
 							},
 						},
 					},
@@ -2829,6 +2832,9 @@ func TestTaskGroupDiff(t *testing.T) {
 										KeyFile:  "key2.pem",
 										SNI:      "linked2.consul",
 									}},
+								},
+								Mesh: &ConsulMeshConfigEntry{
+									// nothing
 								},
 							},
 						},
