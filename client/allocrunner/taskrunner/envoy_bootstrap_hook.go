@@ -164,12 +164,18 @@ func (envoyBootstrapHook) Name() string {
 }
 
 func isConnectKind(kind string) bool {
-	return helper.SliceStringContains([]string{
-		structs.ConnectProxyPrefix,
-		structs.ConnectIngressPrefix,
-		structs.ConnectTerminatingPrefix,
-		structs.ConnectMeshPrefix,
-	}, kind)
+	switch kind {
+	case structs.ConnectProxyPrefix:
+		return true
+	case structs.ConnectIngressPrefix:
+		return true
+	case structs.ConnectTerminatingPrefix:
+		return true
+	case structs.ConnectMeshPrefix:
+		return true
+	default:
+		return false
+	}
 }
 
 func (_ *envoyBootstrapHook) extractNameAndKind(kind structs.TaskKind) (string, string, error) {
