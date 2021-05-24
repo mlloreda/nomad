@@ -204,6 +204,9 @@ func connectUpstreams(in []structs.ConsulUpstream) []api.Upstream {
 	return upstreams
 }
 
+// connectMeshGateway creates an api.MeshGatewayConfig from the nomad upstream
+// block. A non-existent config or unsupported gateway mode will default to the
+// Consul default mode.
 func connectMeshGateway(in *structs.ConsulMeshGateway) api.MeshGatewayConfig {
 	gw := api.MeshGatewayConfig{
 		Mode: api.MeshGatewayModeDefault,

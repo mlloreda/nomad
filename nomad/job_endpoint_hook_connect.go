@@ -254,7 +254,7 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 			// create a port for the sidecar task's proxy port
 			portLabel := service.Connect.SidecarService.Port
 			if portLabel == "" {
-				portLabel = fmt.Sprintf("%s-%s", structs.ConnectProxyPrefix, service.Name)
+				portLabel = envoy.PortLabel(structs.ConnectProxyPrefix, service.Name, "")
 			}
 			injectPort(g, portLabel)
 
@@ -289,7 +289,7 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 			// reasonable to keep the magic alive here.
 			if service.Connect.IsTerminating() && service.PortLabel == "" {
 				// Inject a dynamic port for the terminating gateway.
-				portLabel := fmt.Sprintf("%s-%s", structs.ConnectTerminatingPrefix, service.Name)
+				portLabel := envoy.PortLabel(structs.ConnectTerminatingPrefix, service.Name, "")
 				service.PortLabel = portLabel
 				injectPort(g, portLabel)
 			}
@@ -304,7 +304,7 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 				}
 
 				// Inject a dynamic port for mesh gateway LAN address.
-				lanPortLabel := fmt.Sprintf("%s-%s-lan", structs.ConnectMeshPrefix, service.Name) // todo: extract (we need same logic in service_client.go)
+				lanPortLabel := envoy.PortLabel(structs.ConnectMeshPrefix, service.Name, "")
 				injectPort(g, lanPortLabel)
 			}
 
