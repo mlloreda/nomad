@@ -187,7 +187,7 @@ func (_ *envoyBootstrapHook) extractNameAndKind(kind structs.TaskKind) (string, 
 	return serviceKind, serviceName, nil
 }
 
-func (h *envoyBootstrapHook) lookupService(svcKind, svcName, tgName string, taskEnv *taskenv.TaskEnv) (*structs.Service, error) {
+func (h *envoyBootstrapHook) lookupService(svcKind, svcName string, taskEnv *taskenv.TaskEnv) (*structs.Service, error) {
 	tg := h.alloc.Job.LookupTaskGroup(h.alloc.TaskGroup)
 	interpolatedServices := taskenv.InterpolateServices(taskEnv, tg.Services)
 
@@ -225,7 +225,7 @@ func (h *envoyBootstrapHook) Prestart(ctx context.Context, req *ifs.TaskPrestart
 		return err
 	}
 
-	service, err := h.lookupService(serviceKind, serviceName, h.alloc.TaskGroup, req.TaskEnv)
+	service, err := h.lookupService(serviceKind, serviceName, req.TaskEnv)
 	if err != nil {
 		return err
 	}
@@ -441,8 +441,6 @@ func (h *envoyBootstrapHook) newEnvoyBootstrapArgs(
 		gateway = "mesh"
 	}
 
-	fmt.Println("HAHHHHHHHHHHHH")
-
 	h.logger.Info("bootstrapping envoy",
 		"sidecar_for", service.Name, "bootstrap_file", filepath,
 		"sidecar_for_id", sidecarForID, "grpc_addr", grpcAddr,
@@ -519,9 +517,6 @@ func (e envoyBootstrapArgs) args() []string {
 	if v := e.namespace; v != "" {
 		arguments = append(arguments, "-namespace", v)
 	}
-
-	// YOU ARE HERE, so do we set -address and/or -wan-address ?
-	fmt.Println("EBA args:", arguments)
 
 	return arguments
 }

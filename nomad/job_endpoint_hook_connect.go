@@ -397,12 +397,10 @@ func gatewayProxyForBridge(gateway *structs.ConsulGateway) *structs.ConsulGatewa
 		proxy.EnvoyGatewayBindTaggedAddresses = false
 		proxy.EnvoyGatewayBindAddresses = map[string]*structs.ConsulGatewayBindAddress{
 			"wan": {
-				// YOU ARE HERE
 				Address: "0.0.0.0",
 				Port:    -1, // filled in later with configured port
 			},
 			"lan": {
-				// AND HERE
 				Address: "0.0.0.0",
 				Port:    -1, // filled in later with generated port
 			},
