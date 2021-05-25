@@ -304,7 +304,7 @@ func groupConnectHook(job *structs.Job, g *structs.TaskGroup) error {
 				}
 
 				// Inject a dynamic port for mesh gateway LAN address.
-				lanPortLabel := envoy.PortLabel(structs.ConnectMeshPrefix, service.Name, "")
+				lanPortLabel := envoy.PortLabel(structs.ConnectMeshPrefix, service.Name, "lan")
 				injectPort(g, lanPortLabel)
 			}
 
